@@ -74,7 +74,7 @@ chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
 function archiveTab(tab, accessTime) {
     if (!BOOKMARK_FOLDER) {
         chrome.bookmarks.create(
-            { 'parentId': bookmarkBar.id, 'title': 'Tab Archive' },
+            { 'title': 'Tab Archive' },
             function (newFolder) {
                 localStorage["bookmark_folder"], BOOKMARK_FOLDER = newFolder.id;
             },
