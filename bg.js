@@ -94,9 +94,9 @@ function archiveTab(tab, accessTime) {
                 parent = bookmark
             })
         }
+        chrome.bookmarks.create({ 'parentId': +parent.id, 'title': tab.title, 'url': tab.url })
     });
 
-    chrome.bookmarks.create({ 'parentId': +parent.id, 'title': tab.title, 'url': tab.url })
 
     // filter tree to find folder monthYear
     // it could be risky if user moves folder, could be breach of trust
