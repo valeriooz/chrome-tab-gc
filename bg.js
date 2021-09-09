@@ -80,14 +80,14 @@ function archiveTab(tab, parent) {
     chrome.bookmarks.create({ 'parentId': parent.id, 'title': tab.title, 'url': tab.url })
 }
 
-function createSubFolder(accessTime) {
+async function createSubFolder(accessTime) {
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const month = months[accessTime.getMonth()];
     const year = accessTime.getFullYear();
     const monthYear = `${month} ${year}`;
     let parent = undefined;
 
-    chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) {
+    await chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) {
         parent = tree[0].children.filter(child => child.title === monthYear)[0];
         if (!parent) {
             chrome.bookmarks.create({ 'parentId': BOOKMARK_FOLDER, 'title': monthYear }, function (bookmark) {
@@ -98,11 +98,12 @@ function createSubFolder(accessTime) {
         // test with page suspenders, might give problems
         // should the extension remove duplicates? up to user maybe?
     });
+    console.log(parent)
     return parent
 }
 
 // close all old inactive and unpinned tabs 
-function garbageCollect() {
+async function garbageCollect() {
     // remove
     let accessTimesArray = Object.entries(accessTimes).map((el) => el)
     accessTimesArray.forEach(accessTime => {
@@ -116,7 +117,7 @@ function garbageCollect() {
             chrome.tabs.get(tabId, function (tab) {
                 if (!tab.pinned && !tab.active) {
                     if (ARCHIVE_MODE) {
-                        parent = createSubFolder(accessTime);
+                        parent = await createSubFolder(accessTime);
                         archiveTab(tab, parent);
                     }
                     chrome.tabs.remove([tab.id]);
