@@ -16,20 +16,20 @@ function loadConfig() {
     }
     var archive_mode = localStorage["archive_mode"];
     ARCHIVE_MODE = archive_mode === "true" ? true : false;
-}
-var bookmark_folder = localStorage["bookmark_folder"]
-if (ARCHIVE_MODE && bookmark_folder) {
-    BOOKMARK_FOLDER = bookmark_folder;
-} else if (ARCHIVE_MODE && !bookmark_folder) {
-    chrome.bookmarks.create(
-        { 'title': 'Tab Archive' },
-        function (newFolder) {
-            BOOKMARK_FOLDER = newFolder.id;
-            localStorage["bookmark_folder"] = newFolder.id;
-        },
-    );
-}
 
+    var bookmark_folder = localStorage["bookmark_folder"]
+    if (ARCHIVE_MODE && bookmark_folder) {
+        BOOKMARK_FOLDER = bookmark_folder;
+    } else if (ARCHIVE_MODE && !bookmark_folder) {
+        chrome.bookmarks.create(
+            { 'title': 'Tab Archive' },
+            function (newFolder) {
+                BOOKMARK_FOLDER = newFolder.id;
+                localStorage["bookmark_folder"] = newFolder.id;
+            },
+        );
+    }
+}
 // update access time of a tab
 function updateAccess(tabId) {
     accessTimes[tabId] = new Date();
