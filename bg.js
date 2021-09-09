@@ -114,7 +114,7 @@ async function garbageCollect() {
 
         if ((now - accessTime) >= OLD_AGE) {
 
-            chrome.tabs.get(tabId, function (tab) {
+            await chrome.tabs.get(tabId, async function (tab) {
                 if (!tab.pinned && !tab.active) {
                     if (ARCHIVE_MODE) {
                         parent = await createSubFolder(accessTime);
