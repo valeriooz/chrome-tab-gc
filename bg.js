@@ -86,14 +86,14 @@ function archiveTab(tab, accessTime) {
     let parent = null;
 
     chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) { //is getChildren better?
-        console.log(tab)
-        console.log(tree)
-        parent = tree[0].children.filter(child => child.title === monthYear);
+        parent = tree[0].children.filter(child => child.title === monthYear)[0];
         if (!parent) {
             chrome.bookmarks.create({ 'parentId': BOOKMARK_FOLDER, 'title': monthYear }, function (bookmark) {
+                console.log(bookmark)
                 parent = bookmark
             })
         }
+        console.log(parent)
         chrome.bookmarks.create({ 'parentId': parent.id, 'title': tab.title, 'url': tab.url })
     });
 
