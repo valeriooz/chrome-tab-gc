@@ -72,14 +72,6 @@ chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
 
 // archive tab before removal
 function archiveTab(tab, accessTime) {
-    if (!BOOKMARK_FOLDER) {
-        chrome.bookmarks.create(
-            { 'title': 'Tab Archive' },
-            function (newFolder) {
-                localStorage["bookmark_folder"], BOOKMARK_FOLDER = newFolder.id;
-            },
-        );
-    }
     chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) { //is getChildren better?
         console.log(tab)
         console.log(tree)
@@ -99,6 +91,15 @@ function archiveTab(tab, accessTime) {
 function garbageCollect() {
     // remove
     for (var tabIdStr in accessTimes) {
+        if (!BOOKMARK_FOLDER) {
+            chrome.bookmarks.create(
+                { 'title': 'Tab Archive' },
+                function (newFolder) {
+                    BOOKMARK_FOLDER = newFolder.id;
+                    localStorage["bookmark_folder"] = newFolder.id;
+                },
+            );
+        }
         var tabId = parseInt(tabIdStr, 10);
         var accessTime = accessTimes[tabId];
         var now = new Date();
