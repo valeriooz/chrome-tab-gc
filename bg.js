@@ -15,21 +15,19 @@ function loadConfig() {
         OLD_AGE = conf_age * 60000;
     }
     var archive_mode = localStorage["archive_mode"];
-    if (archive_mode) {
-        ARCHIVE_MODE = true;
-    }
-    var bookmark_folder = localStorage["bookmark_folder"]
-    if (ARCHIVE_MODE && bookmark_folder) {
-        BOOKMARK_FOLDER = bookmark_folder;
-    } else if (ARCHIVE_MODE && !bookmark_folder) {
-        chrome.bookmarks.create(
-            { 'title': 'Tab Archive' },
-            function (newFolder) {
-                BOOKMARK_FOLDER = newFolder.id;
-                localStorage["bookmark_folder"] = newFolder.id;
-            },
-        );
-    }
+    ARCHIVE_MODE = archive_mode === "true" ? true : false;
+}
+var bookmark_folder = localStorage["bookmark_folder"]
+if (ARCHIVE_MODE && bookmark_folder) {
+    BOOKMARK_FOLDER = bookmark_folder;
+} else if (ARCHIVE_MODE && !bookmark_folder) {
+    chrome.bookmarks.create(
+        { 'title': 'Tab Archive' },
+        function (newFolder) {
+            BOOKMARK_FOLDER = newFolder.id;
+            localStorage["bookmark_folder"] = newFolder.id;
+        },
+    );
 }
 
 // update access time of a tab
@@ -110,15 +108,16 @@ function garbageCollect() {
         var tabId = parseInt(tabIdStr, 10);
         var accessTime = accessTimes[tabId];
         var now = new Date();
+        let parent = "";
 
         if ((now - accessTime) >= OLD_AGE) {
-            if (ARCHIVE_MODE === "true") {
-                createSubFolder(accessTime)
+            if (ARCHIVE_MODE) {
+                parent = createSubFolder(accessTime);
             }
             chrome.tabs.get(tabId, function (tab) {
                 if (!tab.pinned && !tab.active) {
-                    if (ARCHIVE_MODE === "true") {
-                        archiveTab(tab, accessTime);
+                    if (ARCHIVE_MODE) {
+                        archiveTab(tab, parent);
                     }
                     chrome.tabs.remove([tab.id]);
                     rememberRemoval(tab);
