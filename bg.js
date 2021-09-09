@@ -81,6 +81,9 @@ function archiveTab(tab, accessTime) {
         );
     }
     chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) { //is getChildren better?
+        console.log(tab)
+        console.log(tree)
+        console.log(accessTime)
         // parse accessTime to get month and year
         // filter tree to find folder monthYear
         // id could be risky if user moves folder, could be breach of trust
