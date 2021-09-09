@@ -20,7 +20,7 @@ function loadConfig() {
     }
     var bookmark_folder = localStorage["bookmark_folder"]
     if (ARCHIVE_MODE && bookmark_folder) {
-        BOOKMARK_FOLDER = +bookmark_folder;
+        BOOKMARK_FOLDER = bookmark_folder;
     } else if (ARCHIVE_MODE && !bookmark_folder) {
         chrome.bookmarks.create(
             { 'title': 'Tab Archive' },
@@ -86,7 +86,6 @@ function archiveTab(tab, accessTime) {
     const parent = null;
 
     chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) { //is getChildren better?
-        console.log(monthYear)
         console.log(tab)
         console.log(tree)
         parent = tree[0].children.filter(child => child.title === monthYear);
