@@ -1,5 +1,5 @@
 var accessTimes = {};
-var OLD_AGE = 60000*60*4;
+var OLD_AGE = 60000 * 60 * 4;
 var GC_INTERVAL = 60000;
 var UPDATE_INTERVAL = 60000;
 var MAX_HISTORY = 10;
@@ -9,29 +9,29 @@ var BOOKMARK_FOLDER = null;
 var lastRemoved = [];
 
 // load configuration
-function loadConfig(){
+function loadConfig() {
     var conf_age = localStorage["old_age_mins"];
     if (conf_age) {
         OLD_AGE = conf_age * 60000;
     }
     var archive_mode = localStorage["archive_mode"];
-    if(archive_mode) {
+    if (archive_mode) {
         ARCHIVE_MODE = true;
     }
     var bookmark_folder = localStorage["bookmark_folder"]
-    if(bookmark_folder) {
+    if (bookmark_folder) {
         BOOKMARK_FOLDER = bookmark_folder;
     }
 
 }
 
 // update access time of a tab
-function updateAccess( tabId ) {
+function updateAccess(tabId) {
     accessTimes[tabId] = new Date();
 }
 
 // store removed tab to the history list
-function rememberRemoval( tab ) {
+function rememberRemoval(tab) {
     lastRemoved.unshift(tab);
 
     if (lastRemoved.length > MAX_HISTORY) {
@@ -48,7 +48,7 @@ function getLast() {
 loadConfig();
 
 // update time of all tabs on plugin load
-chrome.tabs.query( {}, function( tabs ) {
+chrome.tabs.query({}, function (tabs) {
     for (var i in tabs) {
         var tab = tabs[i];
         updateAccess(tab.id);
@@ -56,32 +56,56 @@ chrome.tabs.query( {}, function( tabs ) {
 });
 
 // handle new tab event
-chrome.tabs.onCreated.addListener( function( tab ) {
+chrome.tabs.onCreated.addListener(function (tab) {
     updateAccess(tab.id);
 });
 
 // handle active tab event
-chrome.tabs.onActivated.addListener( function( activeInfo ) {
+chrome.tabs.onActivated.addListener(function (activeInfo) {
     updateAccess(activeInfo.tabId);
 });
 
 // handle tab removal event
-chrome.tabs.onRemoved.addListener( function( tabId, removeInfo ) {
-   delete accessTimes[tabId];
+chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
+    delete accessTimes[tabId];
 });
 
+// archive tab before removal
+function archiveTab(tab, accessTime) {
+    if (!BOOKMARK_FOLDER) {
+        chrome.bookmarks.create(
+            { 'parentId': bookmarkBar.id, 'title': 'Tab Archive' },
+            function (newFolder) {
+                localStorage["bookmark_folder"], BOOKMARK_FOLDER = newFolder.id;
+            },
+        );
+    }
+    chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) { //is getChildren better?
+        // parse accessTime to get month and year
+        // filter tree to find folder monthYear
+        // id could be risky if user moves folder, could be breach of trust
+        // if does not exist, chrome.bookmarks.create of monthYear folder with parentId BOOKMARK_FOLDER
+        // if exists, chrome.bookmarks.create with parentId of found node, title tab.title, url tab.url
+        // test with page suspenders, might give problems
+        // should the extension remove duplicates? up to user maybe?
+    },
+    );
+}
 
 // close all old inactive and unpinned tabs 
 function garbageCollect() {
     // remove
     for (var tabIdStr in accessTimes) {
-        var tabId = parseInt(tabIdStr,10);
+        var tabId = parseInt(tabIdStr, 10);
         var accessTime = accessTimes[tabId];
         var now = new Date();
 
-        if ( (now - accessTime) >= OLD_AGE ) {  
-            chrome.tabs.get(tabId, function(tab) {
+        if ((now - accessTime) >= OLD_AGE) {
+            chrome.tabs.get(tabId, function (tab) {
                 if (!tab.pinned && !tab.active) {
+                    if (ARCHIVE_MODE) {
+                        archiveTab(tab, accessTime);
+                    }
                     chrome.tabs.remove([tab.id]);
                     rememberRemoval(tab);
                 }
@@ -92,15 +116,15 @@ function garbageCollect() {
 
 // update access time for active tab
 function updateActive() {
-    chrome.tabs.query( {active: true}, function callback(tabs) {
+    chrome.tabs.query({ active: true }, function callback(tabs) {
         for (var i in tabs) {
             var tab = tabs[i];
-            updateAccess( tab.id );
+            updateAccess(tab.id);
         }
     });
 }
 
 
 
-setInterval( garbageCollect, GC_INTERVAL );
-setInterval( updateActive, UPDATE_INTERVAL );
+setInterval(garbageCollect, GC_INTERVAL);
+setInterval(updateActive, UPDATE_INTERVAL);
