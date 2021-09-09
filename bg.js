@@ -76,7 +76,7 @@ chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
 });
 
 // archive tab before removal
-function archiveTab(tab, parentId) {
+function archiveTab(tab, parent) {
     chrome.bookmarks.create({ 'parentId': parent.id, 'title': tab.title, 'url': tab.url })
 }
 
@@ -95,10 +95,10 @@ function createSubFolder(accessTime) {
                 parent = bookmark
             })
         }
-        return parent
         // test with page suspenders, might give problems
         // should the extension remove duplicates? up to user maybe?
     });
+    return parent
 }
 
 // close all old inactive and unpinned tabs 
@@ -115,6 +115,8 @@ function garbageCollect() {
                 parent = createSubFolder(accessTime);
             }
             chrome.tabs.get(tabId, function (tab) {
+                console.log(tab.title)
+                console.log(parent)
                 if (!tab.pinned && !tab.active) {
                     if (ARCHIVE_MODE) {
                         archiveTab(tab, parent);
