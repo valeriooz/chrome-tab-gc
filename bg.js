@@ -83,7 +83,7 @@ function archiveTab(tab, accessTime) {
     const month = months[accessTime.getMonth()];
     const year = accessTime.getFullYear();
     const monthYear = `${month} ${year}`;
-    const parent = null;
+    let parent = null;
 
     chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) { //is getChildren better?
         console.log(tab)
