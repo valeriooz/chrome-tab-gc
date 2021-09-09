@@ -1,8 +1,10 @@
 
 
 function save() {
-  var input = document.getElementById("oldage");
-  localStorage["old_age_mins"] = input.value;
+  var oldage = document.getElementById("oldage");
+  localStorage["old_age_mins"] = oldage.value;
+  var archivemode = document.getElementById("archivemode");
+  localStorage["archive_mode"] = archivemode.value;
   chrome.extension.getBackgroundPage().loadConfig();
 }
 

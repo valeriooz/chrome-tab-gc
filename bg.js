@@ -3,6 +3,7 @@ var OLD_AGE = 60000*60*4;
 var GC_INTERVAL = 60000;
 var UPDATE_INTERVAL = 60000;
 var MAX_HISTORY = 10;
+var ARCHIVE_MODE = false;
 
 var lastRemoved = [];
 
@@ -11,6 +12,10 @@ function loadConfig(){
     var conf_age = localStorage["old_age_mins"];
     if (conf_age) {
         OLD_AGE = conf_age * 60000;
+    }
+    var archive_mode = localStorage["archive_mode"];
+    if(archive_mode) {
+        ARCHIVE_MODE = true;
     }
 }
 
