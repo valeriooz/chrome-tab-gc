@@ -4,6 +4,7 @@ var GC_INTERVAL = 60000;
 var UPDATE_INTERVAL = 60000;
 var MAX_HISTORY = 10;
 var ARCHIVE_MODE = false;
+var BOOKMARK_FOLDER = null;
 
 var lastRemoved = [];
 
@@ -17,6 +18,11 @@ function loadConfig(){
     if(archive_mode) {
         ARCHIVE_MODE = true;
     }
+    var bookmark_folder = localStorage["bookmark_folder"]
+    if(bookmark_folder) {
+        BOOKMARK_FOLDER = bookmark_folder;
+    }
+
 }
 
 // update access time of a tab
