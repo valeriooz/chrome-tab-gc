@@ -20,7 +20,7 @@ function loadConfig() {
     }
     var bookmark_folder = localStorage["bookmark_folder"]
     if (ARCHIVE_MODE && bookmark_folder) {
-        BOOKMARK_FOLDER = bookmark_folder;
+        BOOKMARK_FOLDER = +bookmark_folder;
     } else if (ARCHIVE_MODE && !bookmark_folder) {
         chrome.bookmarks.create(
             { 'title': 'Tab Archive' },
@@ -80,21 +80,31 @@ chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
 // archive tab before removal
 function archiveTab(tab, accessTime) {
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const month = months[accessTime.getMonth()];
+    const year = accessTime.getFullYear();
+    const monthYear = `${month} ${year}`;
+    const parent = null;
+
     chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) { //is getChildren better?
-        const month = months[accessTime.getMonth()];
-        const year = accessTime.getFullYear();
-        const monthYear = `${month} ${year}`;
         console.log(monthYear)
         console.log(tab)
         console.log(tree)
-        // filter tree to find folder monthYear
-        // id could be risky if user moves folder, could be breach of trust
-        // if does not exist, chrome.bookmarks.create of monthYear folder with parentId BOOKMARK_FOLDER
-        // if exists, chrome.bookmarks.create with parentId of found node, title tab.title, url tab.url
-        // test with page suspenders, might give problems
-        // should the extension remove duplicates? up to user maybe?
-    },
-    );
+        parent = tree[0].children.filter(child => child.title === monthYear);
+        if (!parent) {
+            chrome.bookmarks.create({ 'parentId': BOOKMARK_FOLDER, 'title': monthYear }, function (bookmark) {
+                parent = bookmark
+            })
+        }
+    });
+
+    chrome.bookmarks.create({ 'parentId': +parent.id, 'title': tab.title, 'url': tab.url })
+
+    // filter tree to find folder monthYear
+    // it could be risky if user moves folder, could be breach of trust
+    // if does not exist, chrome.bookmarks.create of monthYear folder with parentId BOOKMARK_FOLDER
+    // if exists, chrome.bookmarks.create with parentId of found node, title tab.title, url tab.url
+    // test with page suspenders, might give problems
+    // should the extension remove duplicates? up to user maybe?
 }
 
 // close all old inactive and unpinned tabs 
