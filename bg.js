@@ -104,21 +104,18 @@ function createSubFolder(accessTime) {
 // close all old inactive and unpinned tabs 
 function garbageCollect() {
     // remove
-    for (var tabIdStr in accessTimes) {
+    accessTimes.forEach(tabIdStr => {
         var tabId = parseInt(tabIdStr, 10);
         var accessTime = accessTimes[tabId];
         var now = new Date();
         let parent = "";
 
         if ((now - accessTime) >= OLD_AGE) {
-            if (ARCHIVE_MODE) {
-                parent = createSubFolder(accessTime);
-            }
+
             chrome.tabs.get(tabId, function (tab) {
-                console.log(tab.title)
-                console.log(parent)
                 if (!tab.pinned && !tab.active) {
                     if (ARCHIVE_MODE) {
+                        parent = createSubFolder(accessTime);
                         archiveTab(tab, parent);
                     }
                     chrome.tabs.remove([tab.id]);
@@ -126,7 +123,7 @@ function garbageCollect() {
                 }
             });
         }
-    }
+    })
 }
 
 // update access time for active tab
