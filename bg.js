@@ -103,7 +103,7 @@ async function createSubFolder(accessTime) {
 }
 
 // close all old inactive and unpinned tabs 
-async function garbageCollect() {
+function garbageCollect() {
     // remove
     let accessTimesArray = Object.entries(accessTimes).map((el) => el)
     accessTimesArray.forEach(accessTime => {
@@ -114,7 +114,7 @@ async function garbageCollect() {
 
         if ((now - accessTime) >= OLD_AGE) {
 
-            await chrome.tabs.get(tabId, async function (tab) {
+            chrome.tabs.get(tabId, async function (tab) {
                 if (!tab.pinned && !tab.active) {
                     if (ARCHIVE_MODE) {
                         parent = await createSubFolder(accessTime);
