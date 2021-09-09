@@ -19,10 +19,17 @@ function loadConfig() {
         ARCHIVE_MODE = true;
     }
     var bookmark_folder = localStorage["bookmark_folder"]
-    if (bookmark_folder) {
+    if (ARCHIVE_MODE && bookmark_folder) {
         BOOKMARK_FOLDER = bookmark_folder;
+    } else if (ARCHIVE_MODE && !bookmark_folder) {
+            chrome.bookmarks.create(
+                { 'title': 'Tab Archive' },
+                function (newFolder) {
+                    BOOKMARK_FOLDER = newFolder.id;
+                    localStorage["bookmark_folder"] = newFolder.id;
+                },
+            );
     }
-
 }
 
 // update access time of a tab
@@ -91,15 +98,6 @@ function archiveTab(tab, accessTime) {
 function garbageCollect() {
     // remove
     for (var tabIdStr in accessTimes) {
-        if (!BOOKMARK_FOLDER) {
-            chrome.bookmarks.create(
-                { 'title': 'Tab Archive' },
-                function (newFolder) {
-                    BOOKMARK_FOLDER = newFolder.id;
-                    localStorage["bookmark_folder"] = newFolder.id;
-                },
-            );
-        }
         var tabId = parseInt(tabIdStr, 10);
         var accessTime = accessTimes[tabId];
         var now = new Date();
