@@ -82,12 +82,11 @@ function archiveTab(tab, accessTime) {
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) { //is getChildren better?
         const month = months[accessTime.getMonth()];
-        const year = accessTime.getYear();
+        const year = accessTime.getFullYear();
         const monthYear = `${month} ${year}`;
         console.log(monthYear)
         console.log(tab)
         console.log(tree)
-        // parse accessTime to get month and year
         // filter tree to find folder monthYear
         // id could be risky if user moves folder, could be breach of trust
         // if does not exist, chrome.bookmarks.create of monthYear folder with parentId BOOKMARK_FOLDER
