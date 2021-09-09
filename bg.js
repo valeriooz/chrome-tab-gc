@@ -98,8 +98,8 @@ async function archiveTab(tab, accessTime) {
 // close all old inactive and unpinned tabs 
 async function garbageCollect() {
     // remove
-    for (var tabIdStr in accessTimes) {
-        var tabId = parseInt(tabIdStr, 10);
+    for (let tabIdStr in accessTimes) {
+        var tabId = parseInt(+tabIdStr, 10);
         var accessTime = accessTimes[tabId];
         var now = new Date();
 
