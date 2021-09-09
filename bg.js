@@ -107,7 +107,7 @@ function garbageCollect() {
     let accessTimesArray = Object.entries(accessTimes).map((el) => el)
     accessTimesArray.forEach(accessTime => {
         var tabId = parseInt(accessTime[0], 10);
-        var accessTime = accessTime[1];
+        var accessTime = accessTime[1].timestamp;
         var now = new Date();
         let parent = "";
 
