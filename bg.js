@@ -78,7 +78,7 @@ chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
 });
 
 // archive tab before removal
-function archiveTab(tab, accessTime) {
+async function archiveTab(tab, accessTime) {
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const tree = await chrome.bookmarks.getSubTree(BOOKMARK_FOLDER);
     const month = months[accessTime.getMonth()];
@@ -96,7 +96,7 @@ function archiveTab(tab, accessTime) {
 }
 
 // close all old inactive and unpinned tabs 
-function garbageCollect() {
+async function garbageCollect() {
     // remove
     for (var tabIdStr in accessTimes) {
         var tabId = parseInt(tabIdStr, 10);
