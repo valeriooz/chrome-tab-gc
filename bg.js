@@ -32,7 +32,7 @@ function loadConfig() {
 }
 // update access time of a tab
 function updateAccess(tabId) {
-    accessTimes[tabId] = { id: tabId, timestamp: new Date() };
+    accessTimes[tabId] = new Date();
 }
 
 // store removed tab to the history list
@@ -80,15 +80,17 @@ function archiveTab(tab, parent) {
     chrome.bookmarks.create({ 'parentId': parent.id, 'title': tab.title, 'url': tab.url })
 }
 
-async function createSubFolder(accessTime) {
+function createSubFolder(accessTime) {
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const month = months[accessTime.getMonth()];
     const year = accessTime.getFullYear();
     const monthYear = `${month} ${year}`;
-    let parent = undefined;
+    let parent
 
-    await chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) {
+    chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) {
+        console.log(tree)
         parent = tree[0].children.filter(child => child.title === monthYear)[0];
+        console.log(parent)
         if (!parent) {
             chrome.bookmarks.create({ 'parentId': BOOKMARK_FOLDER, 'title': monthYear }, function (bookmark) {
                 console.log(bookmark)
@@ -105,27 +107,24 @@ async function createSubFolder(accessTime) {
 // close all old inactive and unpinned tabs 
 function garbageCollect() {
     // remove
-    let accessTimesArray = Object.entries(accessTimes).map((el) => el)
-    accessTimesArray.forEach(accessTime => {
-        var tabId = parseInt(accessTime[0], 10);
-        var accessTime = accessTime[1].timestamp;
+    for (var tabIdStr in accessTimes) {
+        var tabId = parseInt(tabIdStr, 10);
+        var accessTime = accessTimes[tabId];
         var now = new Date();
-        let parent = "";
 
         if ((now - accessTime) >= OLD_AGE) {
 
-            chrome.tabs.get(tabId, async function (tab) {
+            chrome.tabs.get(tabId, function (tab) {
                 if (!tab.pinned && !tab.active) {
                     if (ARCHIVE_MODE) {
-                        parent = await createSubFolder(accessTime);
-                        archiveTab(tab, parent);
+                        createSubFolder(accessTime).then((parent) => archiveTab(tab, parent));
                     }
                     chrome.tabs.remove([tab.id]);
                     rememberRemoval(tab);
                 }
             });
         }
-    })
+    }
 }
 
 // update access time for active tab
