@@ -104,7 +104,7 @@ function createSubFolder(accessTime) {
 // close all old inactive and unpinned tabs 
 function garbageCollect() {
     // remove
-    let accessTimesArray = Object.entries(accessTimes).map((el) => ({ id: el[0], timestamp: el[1] }))
+    let accessTimesArray = Object.entries(accessTimes).map((el) => ({ id: el[0], timestamp: el }))
     accessTimesArray.forEach(accessTime => {
         var tabId = parseInt(accessTime.id, 10);
         var accessTime = accessTime.timestamp;
