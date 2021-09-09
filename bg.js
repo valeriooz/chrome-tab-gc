@@ -22,13 +22,13 @@ function loadConfig() {
     if (ARCHIVE_MODE && bookmark_folder) {
         BOOKMARK_FOLDER = bookmark_folder;
     } else if (ARCHIVE_MODE && !bookmark_folder) {
-            chrome.bookmarks.create(
-                { 'title': 'Tab Archive' },
-                function (newFolder) {
-                    BOOKMARK_FOLDER = newFolder.id;
-                    localStorage["bookmark_folder"] = newFolder.id;
-                },
-            );
+        chrome.bookmarks.create(
+            { 'title': 'Tab Archive' },
+            function (newFolder) {
+                BOOKMARK_FOLDER = newFolder.id;
+                localStorage["bookmark_folder"] = newFolder.id;
+            },
+        );
     }
 }
 
@@ -79,10 +79,14 @@ chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
 
 // archive tab before removal
 function archiveTab(tab, accessTime) {
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) { //is getChildren better?
+        const month = months[accessTime.getMonth()];
+        const year = accessTime.getYear();
+        const monthYear = `${month} ${year}`;
+        console.log(monthYear)
         console.log(tab)
         console.log(tree)
-        console.log(accessTime)
         // parse accessTime to get month and year
         // filter tree to find folder monthYear
         // id could be risky if user moves folder, could be breach of trust
