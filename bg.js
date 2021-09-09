@@ -80,21 +80,19 @@ chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
 // archive tab before removal
 function archiveTab(tab, accessTime) {
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) { //is getChildren better?
-        const month = months[accessTime.getMonth()];
-        const year = accessTime.getFullYear();
-        const monthYear = `${month} ${year}`;
-        console.log(monthYear)
-        console.log(tab)
-        console.log(tree)
-        // filter tree to find folder monthYear
-        // id could be risky if user moves folder, could be breach of trust
-        // if does not exist, chrome.bookmarks.create of monthYear folder with parentId BOOKMARK_FOLDER
-        // if exists, chrome.bookmarks.create with parentId of found node, title tab.title, url tab.url
-        // test with page suspenders, might give problems
-        // should the extension remove duplicates? up to user maybe?
-    },
-    );
+    const tree = await chrome.bookmarks.getSubTree(BOOKMARK_FOLDER);
+    const month = months[accessTime.getMonth()];
+    const year = accessTime.getFullYear();
+    const monthYear = `${month} ${year}`;
+    console.log(monthYear)
+    console.log(tab)
+    console.log(tree)
+    // filter tree to find folder monthYear
+    // id could be risky if user moves folder, could be breach of trust
+    // if does not exist, chrome.bookmarks.create of monthYear folder with parentId BOOKMARK_FOLDER
+    // if exists, chrome.bookmarks.create with parentId of found node, title tab.title, url tab.url
+    // test with page suspenders, might give problems
+    // should the extension remove duplicates? up to user maybe?
 }
 
 // close all old inactive and unpinned tabs 
@@ -106,15 +104,14 @@ function garbageCollect() {
         var now = new Date();
 
         if ((now - accessTime) >= OLD_AGE) {
-            chrome.tabs.get(tabId, function (tab) {
-                if (!tab.pinned && !tab.active) {
-                    if (ARCHIVE_MODE) {
-                        archiveTab(tab, accessTime);
-                    }
-                    chrome.tabs.remove([tab.id]);
-                    rememberRemoval(tab);
+            const tab = await chrome.tabs.get(tabId);
+            if (!tab.pinned && !tab.active) {
+                if (ARCHIVE_MODE) {
+                    archiveTab(tab, accessTime);
                 }
-            });
+                chrome.tabs.remove([tab.id]);
+                rememberRemoval(tab);
+            }
         }
     }
 }
