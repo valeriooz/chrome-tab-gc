@@ -10,12 +10,15 @@ function save() {
 
 function restore_options() {
   var old_age_mins = localStorage["old_age_mins"];
+  var archive_mode_value = localStorage["archive_mode"];
   if (!old_age_mins) {
     old_age_mins =  60*4;
   }
 
-  var input = document.getElementById("oldage");
-  input.value = old_age_mins;
+  var oldage = document.getElementById("oldage");
+  oldage.value = old_age_mins;
+  var archivemode = document.getElementById("archivemode");
+  archivemode.checked = archive_mode;
 }
 
 
