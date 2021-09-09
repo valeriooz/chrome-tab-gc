@@ -4,7 +4,7 @@ function save() {
   var oldage = document.getElementById("oldage");
   localStorage["old_age_mins"] = oldage.value;
   var archivemode = document.getElementById("archivemode");
-  localStorage["archive_mode"] = archivemode.value;
+  localStorage["archive_mode"] = archivemode.checked;
   chrome.extension.getBackgroundPage().loadConfig();
 }
 
