@@ -94,7 +94,7 @@ function archiveTab(tab, accessTime) {
                 parent = bookmark
             })
         }
-        chrome.bookmarks.create({ 'parentId': +parent.id, 'title': tab.title, 'url': tab.url })
+        chrome.bookmarks.create({ 'parentId': parent.id, 'title': tab.title, 'url': tab.url })
     });
 
 
