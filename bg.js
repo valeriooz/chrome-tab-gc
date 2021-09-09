@@ -78,14 +78,18 @@ chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
 });
 
 // archive tab before removal
-function archiveTab(tab, accessTime) {
+function archiveTab(tab, parentId) {
+    chrome.bookmarks.create({ 'parentId': parent.id, 'title': tab.title, 'url': tab.url })
+}
+
+function createSubFolder(accessTime) {
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const month = months[accessTime.getMonth()];
     const year = accessTime.getFullYear();
     const monthYear = `${month} ${year}`;
-    let parent = null;
+    let parent = undefined;
 
-    chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) { //is getChildren better?
+    chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) {
         parent = tree[0].children.filter(child => child.title === monthYear)[0];
         if (!parent) {
             chrome.bookmarks.create({ 'parentId': BOOKMARK_FOLDER, 'title': monthYear }, function (bookmark) {
@@ -93,17 +97,10 @@ function archiveTab(tab, accessTime) {
                 parent = bookmark
             })
         }
-        console.log(parent)
-        chrome.bookmarks.create({ 'parentId': parent.id, 'title': tab.title, 'url': tab.url })
+        return parent
+        // test with page suspenders, might give problems
+        // should the extension remove duplicates? up to user maybe?
     });
-
-
-    // filter tree to find folder monthYear
-    // it could be risky if user moves folder, could be breach of trust
-    // if does not exist, chrome.bookmarks.create of monthYear folder with parentId BOOKMARK_FOLDER
-    // if exists, chrome.bookmarks.create with parentId of found node, title tab.title, url tab.url
-    // test with page suspenders, might give problems
-    // should the extension remove duplicates? up to user maybe?
 }
 
 // close all old inactive and unpinned tabs 
@@ -115,9 +112,12 @@ function garbageCollect() {
         var now = new Date();
 
         if ((now - accessTime) >= OLD_AGE) {
-            chrome.tabs.get(tabId, async function (tab) {
+            if (ARCHIVE_MODE === "true") {
+                createSubFolder(accessTime)
+            }
+            chrome.tabs.get(tabId, function (tab) {
                 if (!tab.pinned && !tab.active) {
-                    if (ARCHIVE_MODE) {
+                    if (ARCHIVE_MODE === "true") {
                         archiveTab(tab, accessTime);
                     }
                     chrome.tabs.remove([tab.id]);
