@@ -32,7 +32,7 @@ function loadConfig() {
 }
 // update access time of a tab
 function updateAccess(tabId) {
-    accessTimes[tabId] = new Date();
+    accessTimes[tabId] = { id: tabId, timestamp: new Date() };
 }
 
 // store removed tab to the history list
@@ -104,7 +104,7 @@ function createSubFolder(accessTime) {
 // close all old inactive and unpinned tabs 
 function garbageCollect() {
     // remove
-    let accessTimesArray = Object.entries(accessTimes).map((el) => ({ id: el[0], timestamp: el[1] }))
+    let accessTimesArray = Object.entries(accessTimes).map((el) => el)
     accessTimesArray.forEach(accessTime => {
         var tabId = parseInt(accessTime[0], 10);
         var accessTime = accessTime[1];
