@@ -77,12 +77,10 @@ chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
 
 // archive tab before removal
 function archiveTab(tab, parent) {
-    return function () {
-        return new Promise(function (resolve, reject) {
-            chrome.bookmarks.create({ 'parentId': parent.id, 'title': tab.title, 'url': tab.url })
-            resolve();
-        })
-    }
+    return new Promise(function (resolve, reject) {
+        chrome.bookmarks.create({ 'parentId': parent.id, 'title': tab.title, 'url': tab.url })
+        resolve();
+    })
 }
 
 function createSubFolder(accessTime) {
