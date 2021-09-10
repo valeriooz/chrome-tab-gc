@@ -103,7 +103,7 @@ function createSubFolder(accessTime) {
                             resolve(bookmark)
                         });
                     });
-                }).then((parent) => resolve(parent));
+                }).resolve(parent);
             } else {
                 resolve(parent);
             }
@@ -115,24 +115,33 @@ function createSubFolder(accessTime) {
 // close all old inactive and unpinned tabs 
 function garbageCollect() {
     // remove
-    var parent = Promise.resolve()
+    var sequence = Promise.resolve()
     for (var tabIdStr in accessTimes) {
         var tabId = parseInt(tabIdStr, 10);
         var accessTime = accessTimes[tabId];
         var now = new Date();
         if ((now - accessTime) >= OLD_AGE) {
-
-            chrome.tabs.get(tabId, function (tab) {
-                if (!tab.pinned && !tab.active) {
-                    if (ARCHIVE_MODE) {
-                        parent.then(() => createSubFolder(accessTime)).then((parent) => archiveTab(tab, parent));
-                    }
-                    chrome.tabs.remove([tab.id]);
-                    rememberRemoval(tab);
-                }
-            });
+            sequence.then(removeTab(tabId))
         }
     }
+}
+function removeTab(tabId) {
+    return new Promise(function (resolve, reject) {
+        var sequence = Promise.resolve();
+        chrome.tabs.get(tabId, function (tab) {
+            if (!tab.pinned && !tab.active) {
+                if (ARCHIVE_MODE) {
+                    chrome.tabs.remove([tab.id]);
+                    rememberRemoval(tab);
+                    sequence.then(() => createSubFolder(accessTime)).then((parent) => archiveTab(tab, parent)).resolve();
+                } else {
+                    chrome.tabs.remove([tab.id]);
+                    rememberRemoval(tab);
+                    resolve();
+                }
+            }
+        });
+    })
 }
 
 // update access time for active tab
