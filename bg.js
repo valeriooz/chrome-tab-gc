@@ -101,11 +101,10 @@ function createSubFolder(accessTime) {
                             resolve(bookmark)
                         });
                     });
-                }).resolve(parent);
+                });
             } else {
                 resolve(parent);
             }
-            // Proceed to the next
         });
     });
 }
@@ -119,11 +118,11 @@ function garbageCollect() {
         var accessTime = accessTimes[tabId];
         var now = new Date();
         if ((now - accessTime) >= OLD_AGE) {
-            sequence.then(removeTab(tabId))
+            sequence.then(removeTab(tabId, accessTime))
         }
     }
 }
-function removeTab(tabId) {
+function removeTab(tabId, accessTime) {
     return new Promise(function (resolve, reject) {
         var sequence = Promise.resolve();
         chrome.tabs.get(tabId, function (tab) {
@@ -131,7 +130,7 @@ function removeTab(tabId) {
                 if (ARCHIVE_MODE) {
                     chrome.tabs.remove([tab.id]);
                     rememberRemoval(tab);
-                    sequence.then(() => createSubFolder(accessTime)).then((parent) => archiveTab(tab, parent)).resolve();
+                    sequence.then(() => createSubFolder(accessTime)).then((parent) => archiveTab(tab, parent));
                 } else {
                     chrome.tabs.remove([tab.id]);
                     rememberRemoval(tab);
