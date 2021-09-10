@@ -118,25 +118,22 @@ function garbageCollect() {
         var accessTime = accessTimes[tabId];
         var now = new Date();
         if ((now - accessTime) >= OLD_AGE) {
-            sequence.then(removeTab(tabId, accessTime))
+            sequence.then(findTab(tabId)).then((tab) => {
+                if (!tab.pinned && !tab.active) {
+                    if (ARCHIVE_MODE) {
+                        createSubFolder(accessTime).then((parent) => archiveTab(tab, parent));
+                    }
+                    chrome.tabs.remove([tab.id]);
+                    rememberRemoval(tab);
+                }
+            })
         }
     }
 }
-function removeTab(tabId, accessTime) {
+function findTab(tabId) {
     return new Promise(function (resolve, reject) {
-        var sequence = Promise.resolve();
         chrome.tabs.get(tabId, function (tab) {
-            if (!tab.pinned && !tab.active) {
-                if (ARCHIVE_MODE) {
-                    chrome.tabs.remove([tab.id]);
-                    rememberRemoval(tab);
-                    sequence.then(() => createSubFolder(accessTime)).then((parent) => archiveTab(tab, parent));
-                } else {
-                    chrome.tabs.remove([tab.id]);
-                    rememberRemoval(tab);
-                    resolve();
-                }
-            }
+            resolve(tab)
         });
     })
 }
