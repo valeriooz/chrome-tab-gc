@@ -92,15 +92,22 @@ function createSubFolder(accessTime) {
         const year = accessTime.getFullYear();
         const monthYear = `${month} ${year}`;
         let parent = undefined;
+        let sequence = Promise.resolve()
         chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) {
             parent = tree[0].children.filter(child => child.title === monthYear)[0];
             if (!parent) {
-                chrome.bookmarks.create({ 'parentId': BOOKMARK_FOLDER, 'title': monthYear }, function (bookmark) {
-                    console.log(bookmark)
-                    parent = bookmark
-                })
+                sequence.then(() => {
+                    return new Promise(function (resolve, reject) {
+                        chrome.bookmarks.create({ 'parentId': BOOKMARK_FOLDER, 'title': monthYear }, function (bookmark) {
+                            console.log(bookmark)
+                            resolve(bookmark)
+                        });
+                    });
+                }).then((parent) => resolve(parent));
+            } else {
+                resolve(parent);
             }
-            resolve(parent); // Proceed to the next
+            // Proceed to the next
         });
     });
 }
