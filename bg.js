@@ -86,25 +86,23 @@ function archiveTab(tab, parent) {
 }
 
 function createSubFolder(accessTime) {
-    return function () {
-        return new Promise(function (resolve, reject) {
-            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            const month = months[accessTime.getMonth()];
-            const year = accessTime.getFullYear();
-            const monthYear = `${month} ${year}`;
-            let parent = undefined;
-            chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) {
-                parent = tree[0].children.filter(child => child.title === monthYear)[0];
-                if (!parent) {
-                    chrome.bookmarks.create({ 'parentId': BOOKMARK_FOLDER, 'title': monthYear }, function (bookmark) {
-                        console.log(bookmark)
-                        parent = bookmark
-                    })
-                }
-                resolve(parent); // Proceed to the next
-            });
+    return new Promise(function (resolve, reject) {
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const month = months[accessTime.getMonth()];
+        const year = accessTime.getFullYear();
+        const monthYear = `${month} ${year}`;
+        let parent = undefined;
+        chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) {
+            parent = tree[0].children.filter(child => child.title === monthYear)[0];
+            if (!parent) {
+                chrome.bookmarks.create({ 'parentId': BOOKMARK_FOLDER, 'title': monthYear }, function (bookmark) {
+                    console.log(bookmark)
+                    parent = bookmark
+                })
+            }
+            resolve(parent); // Proceed to the next
         });
-    }
+    });
 }
 
 // close all old inactive and unpinned tabs 
