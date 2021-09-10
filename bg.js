@@ -77,47 +77,50 @@ chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
 
 // archive tab before removal
 function archiveTab(tab, parent) {
-    chrome.bookmarks.create({ 'parentId': parent.id, 'title': tab.title, 'url': tab.url })
+    return function () {
+        return new Promise(function (resolve, reject) {
+            chrome.bookmarks.create({ 'parentId': parent.id, 'title': tab.title, 'url': tab.url })
+            resolve();
+        })
+    }
 }
 
 function createSubFolder(accessTime) {
-    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const month = months[accessTime.getMonth()];
-    const year = accessTime.getFullYear();
-    const monthYear = `${month} ${year}`;
-    let parent
-
-    chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) {
-        console.log(tree)
-        parent = tree[0].children.filter(child => child.title === monthYear)[0];
-        console.log(parent)
-        if (!parent) {
-            chrome.bookmarks.create({ 'parentId': BOOKMARK_FOLDER, 'title': monthYear }, function (bookmark) {
-                console.log(bookmark)
-                parent = bookmark
-            })
-        }
-        // test with page suspenders, might give problems
-        // should the extension remove duplicates? up to user maybe?
-    });
-    console.log(parent)
-    return parent
+    return function () {
+        return new Promise(function (resolve, reject) {
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const month = months[accessTime.getMonth()];
+            const year = accessTime.getFullYear();
+            const monthYear = `${month} ${year}`;
+            let parent = undefined;
+            chrome.bookmarks.getSubTree(BOOKMARK_FOLDER, function (tree) {
+                parent = tree[0].children.filter(child => child.title === monthYear)[0];
+                if (!parent) {
+                    chrome.bookmarks.create({ 'parentId': BOOKMARK_FOLDER, 'title': monthYear }, function (bookmark) {
+                        console.log(bookmark)
+                        parent = bookmark
+                    })
+                }
+                resolve(parent); // Proceed to the next
+            });
+        });
+    }
 }
 
 // close all old inactive and unpinned tabs 
 function garbageCollect() {
     // remove
+    var parent = Promise.resolve()
     for (var tabIdStr in accessTimes) {
         var tabId = parseInt(tabIdStr, 10);
         var accessTime = accessTimes[tabId];
         var now = new Date();
-
         if ((now - accessTime) >= OLD_AGE) {
 
             chrome.tabs.get(tabId, function (tab) {
                 if (!tab.pinned && !tab.active) {
                     if (ARCHIVE_MODE) {
-                        createSubFolder(accessTime).then((parent) => archiveTab(tab, parent));
+                        parent.then(() => createSubFolder(accessTime)).then((parent) => archiveTab(tab, parent));
                     }
                     chrome.tabs.remove([tab.id]);
                     rememberRemoval(tab);
